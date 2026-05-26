@@ -820,16 +820,25 @@ any documentation. This prevents the "documentation that describes half the feat
 
 2. Use AskUserQuestion to confirm scope and ask about documentation target:
 
-   - A) Write documentation inline in existing files (README, ARCHITECTURE, etc.)
-   - B) Create standalone documentation files (e.g., `docs/` directory)
-   - C) Both — inline summaries in existing files + deep docs in standalone files
+   - A) Write documentation inline in existing repo files (README, ARCHITECTURE, etc.) — stays in the repo
+   - B) Create standalone documentation files in the gstack workspace `docs/` (outside the repo)
+   - C) Both — inline summaries in repo files + deep docs in the workspace `docs/`
 
    RECOMMENDATION: Choose C because it maximizes both discoverability and depth.
 
+   Standalone docs are written to the gstack **workspace**, not the repo, so they never
+   clutter or get committed to the project. Resolve the workspace docs dir once and reuse
+   it for every standalone file:
+
+   ```bash
+   eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)"
+   DOCS_DIR="${GSTACK_WORKSPACE_DIR:-$HOME/.ai-workspace/$REPO}/docs"
+   mkdir -p "$DOCS_DIR"
+   ```
+
 3. Determine the output format:
-   - If the project already has a `docs/` directory, follow its conventions
-   - If the project uses a doc framework (Nextra, Docusaurus, MkDocs, VitePress), follow its format
-   - Otherwise, use plain Markdown files in `docs/`
+   - If `$DOCS_DIR` already contains docs, follow their conventions
+   - Otherwise, use plain Markdown files in `$DOCS_DIR`
 
 ---
 
@@ -1133,7 +1142,7 @@ Fix any failures before proceeding.
 
 ## Step 9: Commit & Output
 
-1. Stage new documentation files by name (never `git add -A` or `git add .`).
+1. Stage only inline doc edits to **repo** files (README, ARCHITECTURE, etc.) by name (never `git add -A` or `git add .`). Standalone docs live in the gstack workspace (`$DOCS_DIR`), outside the repo — they are NOT staged or committed.
 
 2. Create a commit:
 
@@ -1156,18 +1165,18 @@ EOF
 git push
 ```
 
-4. **If a PR exists**, update the PR body with a `## Documentation Generated` section listing
-   every new file with its Diataxis quadrant and a one-line description:
+4. **If a PR exists** and you made inline edits, update the PR body with a `## Documentation Generated` section listing
+   every new file with its Diataxis quadrant and a one-line description. Standalone docs live in the workspace (not the PR), so list them by their workspace path:
 
 ```
 ## Documentation Generated
 
 | File | Quadrant | Description |
 |------|----------|-------------|
-| docs/tutorial-getting-started.md | Tutorial | Walk-through from install to first working example |
-| docs/reference-widget-api.md | Reference | Complete widget API with types, defaults, examples |
-| docs/explanation-bayesian-scheduler.md | Explanation | Why the scheduler uses Bayesian inference |
-| docs/howto-custom-widgets.md | How-to | Creating and registering custom widgets |
+| ~/.ai-workspace/<project>/docs/tutorial-getting-started.md | Tutorial | Walk-through from install to first working example |
+| ~/.ai-workspace/<project>/docs/reference-widget-api.md | Reference | Complete widget API with types, defaults, examples |
+| ~/.ai-workspace/<project>/docs/explanation-bayesian-scheduler.md | Explanation | Why the scheduler uses Bayesian inference |
+| ~/.ai-workspace/<project>/docs/howto-custom-widgets.md | How-to | Creating and registering custom widgets |
 ```
 
 5. Output a structured summary:

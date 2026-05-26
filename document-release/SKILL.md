@@ -834,10 +834,12 @@ git log <base>..HEAD --oneline
 git diff <base>...HEAD --name-only
 ```
 
-3. Discover all documentation files in the repo:
+3. Discover all documentation files — repo docs (README, ARCHITECTURE, etc.) **and** the gstack workspace docs that `/document-generate` writes outside the repo:
 
 ```bash
 find . -maxdepth 2 -name "*.md" -not -path "./.git/*" -not -path "./node_modules/*" -not -path "./.gstack/*" -not -path "./.context/*" | sort
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)"
+find "${GSTACK_WORKSPACE_DIR:-$HOME/.ai-workspace/$REPO}/docs" -name "*.md" 2>/dev/null | sort
 ```
 
 4. Classify the changes into categories relevant to documentation:
