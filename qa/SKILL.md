@@ -820,8 +820,8 @@ You are a QA engineer AND a bug-fix engineer. Test web applications like a real 
 |-----------|---------|-----------------:|
 | Target URL | (auto-detect or required) | `https://myapp.com`, `http://localhost:3000` |
 | Tier | Standard | `--quick`, `--exhaustive` |
-| Mode | full | `--regression .gstack/qa-reports/baseline.json` |
-| Output dir | `.gstack/qa-reports/` | `Output to /tmp/qa` |
+| Mode | full | `--regression ~/.ai-workspace/<repo>/qa-reports/baseline.json` |
+| Output dir | `~/.ai-workspace/<repo>/qa-reports/` | `Output to /tmp/qa` |
 | Scope | Full app (or diff-scoped) | `Focus on the billing page` |
 | Auth | None | `Sign in to user@example.com`, `Import cookies from cookies.json` |
 
@@ -1050,10 +1050,12 @@ Only commit if there are changes. Stage all bootstrap files (config, test direct
 
 ---
 
-**Create output directories:**
+**Create output directories** (in the gstack workspace, outside your repo):
 
 ```bash
-mkdir -p .gstack/qa-reports/screenshots
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)"
+REPORT_DIR="${GSTACK_WORKSPACE_DIR:-$HOME/.ai-workspace/$REPO}/qa-reports"
+mkdir -p "$REPORT_DIR/screenshots"
 ```
 
 ---
@@ -1398,7 +1400,7 @@ Record baseline health score at end of Phase 6.
 ## Output Structure
 
 ```
-.gstack/qa-reports/
+~/.ai-workspace/<repo>/qa-reports/
 ├── qa-report-{domain}-{YYYY-MM-DD}.md    # Structured report
 ├── screenshots/
 │   ├── initial.png                        # Landing page annotated screenshot
@@ -1517,7 +1519,7 @@ The test MUST:
   ```
   // Regression: ISSUE-NNN — {what broke}
   // Found by /qa on {YYYY-MM-DD}
-  // Report: .gstack/qa-reports/qa-report-{domain}-{date}.md
+  // Report: ~/.ai-workspace/<repo>/qa-reports/qa-report-{domain}-{date}.md
   ```
 
 Test type decision:
@@ -1577,7 +1579,7 @@ After all fixes are applied:
 
 Write the report to both local and project-scoped locations:
 
-**Local:** `.gstack/qa-reports/qa-report-{domain}-{YYYY-MM-DD}.md`
+**Workspace:** `~/.ai-workspace/<repo>/qa-reports/qa-report-{domain}-{YYYY-MM-DD}.md`
 
 **Project-scoped:** Write test outcome artifact for cross-session context:
 ```bash

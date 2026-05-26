@@ -772,8 +772,8 @@ You are a QA engineer. Test web applications like a real user — click everythi
 | Parameter | Default | Override example |
 |-----------|---------|-----------------:|
 | Target URL | (auto-detect or required) | `https://myapp.com`, `http://localhost:3000` |
-| Mode | full | `--quick`, `--regression .gstack/qa-reports/baseline.json` |
-| Output dir | `.gstack/qa-reports/` | `Output to /tmp/qa` |
+| Mode | full | `--quick`, `--regression ~/.ai-workspace/<repo>/qa-reports/baseline.json` |
+| Output dir | `~/.ai-workspace/<repo>/qa-reports/` | `Output to /tmp/qa` |
 | Scope | Full app (or diff-scoped) | `Focus on the billing page` |
 | Auth | None | `Sign in to user@example.com`, `Import cookies from cookies.json` |
 
@@ -817,10 +817,11 @@ If `NEEDS_SETUP`:
    fi
    ```
 
-**Create output directories:**
+**Create output directories** (in the gstack workspace, outside your repo):
 
 ```bash
-REPORT_DIR=".gstack/qa-reports"
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)"
+REPORT_DIR="${GSTACK_WORKSPACE_DIR:-$HOME/.ai-workspace/$REPO}/qa-reports"
 mkdir -p "$REPORT_DIR/screenshots"
 ```
 
@@ -1163,7 +1164,7 @@ Minimum 0 per category.
 
 Write the report to both local and project-scoped locations:
 
-**Local:** `.gstack/qa-reports/qa-report-{domain}-{YYYY-MM-DD}.md`
+**Workspace:** `~/.ai-workspace/<repo>/qa-reports/qa-report-{domain}-{YYYY-MM-DD}.md`
 
 **Project-scoped:** Write test outcome artifact for cross-session context:
 ```bash
@@ -1174,7 +1175,7 @@ Write to `~/.gstack/projects/{slug}/{user}-{branch}-test-outcome-{datetime}.md`
 ### Output Structure
 
 ```
-.gstack/qa-reports/
+~/.ai-workspace/<repo>/qa-reports/
 ├── qa-report-{domain}-{YYYY-MM-DD}.md    # Structured report
 ├── screenshots/
 │   ├── initial.png                        # Landing page annotated screenshot
