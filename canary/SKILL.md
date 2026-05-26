@@ -839,9 +839,8 @@ When the user types `/canary`, run this skill.
 
 ```bash
 eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null || echo "SLUG=unknown")"
-mkdir -p .gstack/canary-reports
-mkdir -p .gstack/canary-reports/baselines
-mkdir -p .gstack/canary-reports/screenshots
+REPORT_DIR="${GSTACK_WORKSPACE_DIR:-$HOME/.ai-workspace/$REPO}/canary-reports"
+mkdir -p "$REPORT_DIR/baselines" "$REPORT_DIR/screenshots"
 ```
 
 Parse the user's arguments. Default duration is 10 minutes. Default pages: auto-discover from the app's navigation.
@@ -854,7 +853,7 @@ For each page (either from `--pages` or the homepage):
 
 ```bash
 $B goto <page-url>
-$B snapshot -i -a -o ".gstack/canary-reports/baselines/<page-name>.png"
+$B snapshot -i -a -o "$REPORT_DIR/baselines/<page-name>.png"
 $B console --errors
 $B perf
 $B text
@@ -862,7 +861,7 @@ $B text
 
 Collect for each page: screenshot path, console error count, page load time from `perf`, and a text content snapshot.
 
-Save the baseline manifest to `.gstack/canary-reports/baseline.json`:
+Save the baseline manifest to `$REPORT_DIR/baseline.json`:
 
 ```json
 {
@@ -908,7 +907,7 @@ For each page to monitor:
 
 ```bash
 $B goto <page-url>
-$B snapshot -i -a -o ".gstack/canary-reports/screenshots/pre-<page-name>.png"
+$B snapshot -i -a -o "$REPORT_DIR/screenshots/pre-<page-name>.png"
 $B console --errors
 $B perf
 ```
@@ -921,7 +920,7 @@ Monitor for the specified duration. Every 60 seconds, check each page:
 
 ```bash
 $B goto <page-url>
-$B snapshot -i -a -o ".gstack/canary-reports/screenshots/<page-name>-<check-number>.png"
+$B snapshot -i -a -o "$REPORT_DIR/screenshots/<page-name>-<check-number>.png"
 $B console --errors
 $B perf
 ```
@@ -978,12 +977,12 @@ Per-Page Results:
   /settings       HEALTHY     0         380ms
 
 Alerts Fired:  [N] (X critical, Y high, Z medium)
-Screenshots:   .gstack/canary-reports/screenshots/
+Screenshots:   $REPORT_DIR/screenshots/
 
 VERDICT: [DEPLOY IS HEALTHY / DEPLOY HAS ISSUES — details above]
 ```
 
-Save report to `.gstack/canary-reports/{date}-canary.md` and `.gstack/canary-reports/{date}-canary.json`.
+Save report to `$REPORT_DIR/{date}-canary.md` and `$REPORT_DIR/{date}-canary.json`.
 
 Log the result for the review dashboard:
 

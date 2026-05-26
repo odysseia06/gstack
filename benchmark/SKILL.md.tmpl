@@ -50,8 +50,8 @@ When the user types `/benchmark`, run this skill.
 
 ```bash
 eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null || echo "SLUG=unknown")"
-mkdir -p .gstack/benchmark-reports
-mkdir -p .gstack/benchmark-reports/baselines
+REPORT_DIR="${GSTACK_WORKSPACE_DIR:-$HOME/.ai-workspace/$REPO}/benchmark-reports"
+mkdir -p "$REPORT_DIR/baselines"
 ```
 
 ### Phase 2: Page Discovery
@@ -132,7 +132,7 @@ Save metrics to baseline file:
 }
 ```
 
-Write to `.gstack/benchmark-reports/baselines/baseline.json`.
+Write to `$REPORT_DIR/baselines/baseline.json`.
 
 ### Phase 5: Comparison
 
@@ -229,7 +229,7 @@ TREND: Performance degrading. LCP doubled in 8 days.
 
 ### Phase 9: Save Report
 
-Write to `.gstack/benchmark-reports/{date}-benchmark.md` and `.gstack/benchmark-reports/{date}-benchmark.json`.
+Write to `$REPORT_DIR/{date}-benchmark.md` and `$REPORT_DIR/{date}-benchmark.json`.
 
 ## Important Rules
 

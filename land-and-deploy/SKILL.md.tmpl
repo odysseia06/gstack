@@ -871,7 +871,10 @@ $B text
 Verify the page has content (not blank, not a generic error page).
 
 ```bash
-$B snapshot -i -a -o ".gstack/deploy-reports/post-deploy.png"
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)"
+REPORT_DIR="${GSTACK_WORKSPACE_DIR:-$HOME/.ai-workspace/$REPO}/deploy-reports"
+mkdir -p "$REPORT_DIR"
+$B snapshot -i -a -o "$REPORT_DIR/post-deploy.png"
 ```
 
 Take an annotated screenshot as evidence.
@@ -920,7 +923,9 @@ After a successful revert: Tell the user "Revert pushed to {base}. The deploy sh
 Create the deploy report directory:
 
 ```bash
-mkdir -p .gstack/deploy-reports
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)"
+REPORT_DIR="${GSTACK_WORKSPACE_DIR:-$HOME/.ai-workspace/$REPO}/deploy-reports"
+mkdir -p "$REPORT_DIR"
 ```
 
 Produce and display the ASCII summary:
@@ -960,7 +965,7 @@ Verification: <HEALTHY / DEGRADED / SKIPPED / REVERTED>
 VERDICT: <DEPLOYED AND VERIFIED / DEPLOYED (UNVERIFIED) / STAGING VERIFIED / REVERTED>
 ```
 
-Save report to `.gstack/deploy-reports/{date}-pr{number}-deploy.md`.
+Save report to `$REPORT_DIR/{date}-pr{number}-deploy.md` (`~/.ai-workspace/<repo>/deploy-reports/...`).
 
 Log to the review dashboard:
 

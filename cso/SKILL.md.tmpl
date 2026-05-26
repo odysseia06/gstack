@@ -527,7 +527,7 @@ For each finding:
 5. **Audit exposure window** — when committed? When removed? Was repo public?
 6. **Check for abuse** — review provider's audit logs
 
-**Trend Tracking:** If prior reports exist in `.gstack/security-reports/`:
+**Trend Tracking:** If prior reports exist in `~/.ai-workspace/<repo>/security-reports/`:
 ```
 SECURITY POSTURE TREND
 ══════════════════════
@@ -555,10 +555,12 @@ Match findings across reports using the `fingerprint` field (sha256 of category 
 ### Phase 14: Save Report
 
 ```bash
-mkdir -p .gstack/security-reports
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)"
+REPORT_DIR="${GSTACK_WORKSPACE_DIR:-$HOME/.ai-workspace/$REPO}/security-reports"
+mkdir -p "$REPORT_DIR"
 ```
 
-Write findings to `.gstack/security-reports/{date}-{HHMMSS}.json` using this schema:
+Write findings to `$REPORT_DIR/{date}-{HHMMSS}.json` (`~/.ai-workspace/<repo>/security-reports/...`) using this schema:
 
 ```json
 {
@@ -611,7 +613,7 @@ Write findings to `.gstack/security-reports/{date}-{HHMMSS}.json` using this sch
 }
 ```
 
-If `.gstack/` is not in `.gitignore`, note it in findings — security reports should stay local.
+Security reports are written to the AI workspace (`~/.ai-workspace/<repo>/security-reports/`), outside the repo entirely, so they stay local and never get committed.
 
 {{LEARNINGS_LOG}}
 
