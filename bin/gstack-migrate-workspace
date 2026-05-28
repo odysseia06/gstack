@@ -12,9 +12,13 @@
 #   gstack-migrate-workspace --apply                  # move reports + ADRs
 #   gstack-migrate-workspace --apply --include-docs   # ALSO move Diataxis-named docs
 #
-# Auto-moved (unambiguous gstack artifacts), -> $GSTACK_WORKSPACE_DIR with the
-# repo-relative subpath preserved:
+# Auto-moved (unambiguous gstack artifacts) -> $GSTACK_WORKSPACE_DIR. Most preserve
+# the repo-relative subpath; a few get relocated to a cleaner subdir:
 #   - .gstack/{qa,benchmark,canary,security,deploy}-reports/   scratch reports
+#   - .context/claude-session-id          -> sessions/claude-session-id
+#   - .context/codex-session-id           -> sessions/codex-session-id
+#   - .context/retros/                    -> retros/
+#   - .gstack/wip-context-before-squash.md -> ship/wip-context-before-squash.md
 #   - docs/adr/  and  src/*/docs/adr/                          ADRs
 #
 # Opt-in only (needs --include-docs): docs/ files named tutorial-* reference-*
@@ -70,10 +74,15 @@ _diataxis_docs() {
        -o -name 'how-to-*.md' -o -name 'explanation-*.md' \) 2>/dev/null | sort
 }
 
-migrate() {            # migrate <repo-relative-path> [gitignore-pattern]
-  local rel="$1" pat="${2:-}"
+migrate() {            # migrate <src-rel> [gitignore-pattern] [explicit-dst-subpath]
+  local rel="$1" pat="${2:-}" override="${3:-}"
   [ -e "$rel" ] || return 0
-  local dst="$DEST/$rel" trk=untracked
+  local dst trk=untracked
+  if [ -n "$override" ]; then
+    dst="$DEST/$override"
+  else
+    dst="$DEST/$rel"
+  fi
   _tracked "$rel" && trk=TRACKED
   if [ -e "$dst" ]; then
     printf '  SKIP  %-44s (workspace already has it)\n' "$rel"
@@ -91,6 +100,13 @@ migrate() {            # migrate <repo-relative-path> [gitignore-pattern]
 
 echo "Scratch reports:"
 for k in qa benchmark canary security deploy; do migrate ".gstack/$k-reports" ".gstack/"; done
+
+echo ""
+echo "Session + ship + retro artifacts:"
+migrate ".context/claude-session-id"          ".context/claude-session-id" "sessions/claude-session-id"
+migrate ".context/codex-session-id"           ".context/codex-session-id"  "sessions/codex-session-id"
+migrate ".context/retros"                     ".context/retros/"           "retros"
+migrate ".gstack/wip-context-before-squash.md" ".gstack/wip-context-before-squash.md" "ship/wip-context-before-squash.md"
 
 echo ""
 echo "ADRs:"
