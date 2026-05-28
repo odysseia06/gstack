@@ -1275,7 +1275,8 @@ Ask Codex anything about the codebase. Supports session continuity for follow-up
 
 1. **Check for existing session:**
 ```bash
-cat .context/codex-session-id 2>/dev/null || echo "NO_SESSION"
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)"
+cat "${GSTACK_WORKSPACE_DIR:-$HOME/.ai-workspace/$REPO}/sessions/codex-session-id" 2>/dev/null || echo "NO_SESSION"
 ```
 
 If a session file exists (not `NO_SESSION`), use AskUserQuestion:
@@ -1418,10 +1419,12 @@ fi
 5. Capture session ID from the streamed output. The parser prints `SESSION_ID:<id>`
    from the `thread.started` event. Save it for follow-ups:
 ```bash
-mkdir -p .context
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)"
+SESSION_DIR="${GSTACK_WORKSPACE_DIR:-$HOME/.ai-workspace/$REPO}/sessions"
+mkdir -p "$SESSION_DIR"
 ```
 Save the session ID printed by the parser (the line starting with `SESSION_ID:`)
-to `.context/codex-session-id`.
+to `$SESSION_DIR/codex-session-id` (`~/.ai-workspace/<repo>/sessions/codex-session-id`).
 
 6. Present the full streamed output:
 

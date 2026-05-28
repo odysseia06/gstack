@@ -252,7 +252,8 @@ read-only tools.
 1. Check for an existing Claude session:
 
 ```bash
-cat .context/claude-session-id 2>/dev/null || echo "NO_SESSION"
+{{SLUG_EVAL}}
+cat "${GSTACK_WORKSPACE_DIR:-$HOME/.ai-workspace/$REPO}/sessions/claude-session-id" 2>/dev/null || echo "NO_SESSION"
 ```
 
 If a session exists, ask the user whether to continue it or start fresh.
@@ -298,8 +299,10 @@ except Exception:
 PY
 )
 if [ -n "$SESSION_ID" ]; then
-  mkdir -p .context
-  printf "%s\n" "$SESSION_ID" > .context/claude-session-id
+  {{SLUG_EVAL}}
+  SESSION_DIR="${GSTACK_WORKSPACE_DIR:-$HOME/.ai-workspace/$REPO}/sessions"
+  mkdir -p "$SESSION_DIR"
+  printf "%s\n" "$SESSION_ID" > "$SESSION_DIR/claude-session-id"
 fi
 ```
 
@@ -328,7 +331,7 @@ rm -f "$PROMPT_FILE" "$RESP_FILE" "$ERR_FILE"
 - **Auth failure from stderr:** Surface the stderr line and ask the user to re-authenticate.
 - **JSON parse failure:** Show raw stdout from `$RESP_FILE` and stderr from `$ERR_FILE`.
 - **Empty response:** Tell the user "Claude returned no response. Check stderr for errors."
-- **Resume failure:** Delete `.context/claude-session-id` and retry with a fresh session.
+- **Resume failure:** Delete `~/.ai-workspace/<repo>/sessions/claude-session-id` and retry with a fresh session.
 
 ---
 

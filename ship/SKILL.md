@@ -2750,9 +2750,11 @@ If `WIP_COUNT` > 0, collect the WIP context first so it survives the squash:
 ```bash
 # Export [gstack-context] blocks from all WIP commits on this branch.
 # This file becomes input to the CHANGELOG entry and may inform PR body context.
-mkdir -p "$(git rev-parse --show-toplevel)/.gstack"
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)"
+SHIP_DIR="${GSTACK_WORKSPACE_DIR:-$HOME/.ai-workspace/$REPO}/ship"
+mkdir -p "$SHIP_DIR"
 git log <base>..HEAD --grep="^WIP:" --format="%H%n%B%n---END---" > \
-  "$(git rev-parse --show-toplevel)/.gstack/wip-context-before-squash.md" 2>/dev/null || true
+  "$SHIP_DIR/wip-context-before-squash.md" 2>/dev/null || true
 ```
 
 **Non-destructive squash strategy:**
