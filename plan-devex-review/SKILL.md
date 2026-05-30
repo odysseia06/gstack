@@ -925,6 +925,49 @@ Map:
 * What type of developer product is this? (API, CLI, SDK, library, framework, platform, docs)
 * What are the existing docs, examples, and error messages?
 
+### Domain Context + Decision Records (CONTEXT.md, ADRs)
+
+If this project keeps a domain glossary or decision records, read them before
+reviewing — they are the project's own language and its settled decisions.
+`CONTEXT.md` is a committed glossary at the repo root (or per-context files when
+a `CONTEXT-MAP.md` exists at the root); ADRs are uncommitted, under the per-repo
+AI workspace. Both are written by `/grill-with-docs` and
+`/improve-codebase-architecture`.
+
+Discover what exists:
+
+```bash
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)" 2>/dev/null || true
+_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+echo "── CONTEXT (committed glossary) ──"
+ls "$_ROOT"/CONTEXT.md "$_ROOT"/CONTEXT-MAP.md 2>/dev/null || true
+find "$_ROOT" -name CONTEXT.md -not -path '*/node_modules/*' -not -path '*/.git/*' 2>/dev/null | head -20
+echo "── ADRs (AI workspace: ${GSTACK_WORKSPACE_DIR:-~/.ai-workspace/<repo>}) ──"
+{ [ -n "$GSTACK_WORKSPACE_DIR" ] && [ -d "$GSTACK_WORKSPACE_DIR" ] && find "$GSTACK_WORKSPACE_DIR" -path '*/docs/adr/*.md' 2>/dev/null | sort | head -60; } || echo "no ADR workspace yet"
+```
+
+Then **read what you found** with the Read tool and use it:
+
+- **Every `CONTEXT.md`** is the canonical glossary — the project's own meaning
+  for each domain term. Use those exact terms in your review. If the plan uses a
+  term in a way that conflicts with the glossary, flag it ("the plan says *X* but
+  CONTEXT.md defines *X* as *Y* — which is meant?").
+- **Relevant ADRs** are decisions already made, with rationale. Do NOT
+  re-litigate a settled decision. If the plan contradicts an ADR, surface it
+  explicitly by ADR number — either the plan is wrong, or the ADR needs a
+  superseding entry. Cite the ADR number on any finding that touches one.
+- If a `CONTEXT-MAP.md` exists, the repo has **multiple contexts**: read the
+  per-context `CONTEXT.md` the map points to, plus the matching per-context ADR
+  directory, for whichever context this plan touches.
+- **When the artifact under review IS a PRD or an ADR** (the common
+  "review this PRD/ADR" invocation), the surrounding CONTEXT.md and sibling ADRs
+  are the ground truth — read all of them before forming an opinion.
+
+If no `CONTEXT.md` or ADRs exist, say so in one line ("no CONTEXT.md / ADRs
+found — proceeding without domain docs") and continue. Never block on their
+absence, and never create them here — authoring them is the job of
+`/grill-with-docs`.
+
 ## Prerequisite Skill Offer
 
 When the design doc check above prints "No design doc found," offer the prerequisite
