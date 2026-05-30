@@ -299,6 +299,30 @@ export function buildTrimmedDescription(parts: CatalogParts): string {
   return `${lead}${suffix}`;
 }
 
+/**
+ * Render a string as a single-line YAML scalar that STRICT parsers accept.
+ *
+ * Catalog descriptions are emitted inline as `description: <value>`. A YAML
+ * plain (unquoted) scalar may not contain ": " (the mapping indicator) or
+ * " #" (a comment), may not begin with an indicator character, and may not be
+ * wrapped in whitespace. Claude's skill loader is lenient and accepts such
+ * values anyway; Codex's YAML parser is strict and rejects the whole file,
+ * which is how unquoted leads like "Ship workflow: detect..." shipped broken
+ * for Codex users. When the value is unsafe as a plain scalar we double-quote
+ * it (a JSON string is always a valid YAML double-quoted scalar); otherwise we
+ * leave it bare so safe descriptions don't churn.
+ */
+export function yamlInlineScalar(value: string): string {
+  const unsafeAsPlain =
+    value.length === 0 ||
+    value.trim() !== value ||              // surrounding whitespace
+    /^[-?:](?:\s|$)/.test(value) ||        // leading "- " / "? " / ": " (or bare)
+    /^[!&*>|%@`"'#,[\]{}]/.test(value) ||  // leading indicator character
+    /:(?:\s|$)/.test(value) ||             // ": " or trailing ":" anywhere
+    /\s#/.test(value);                     // " #" begins a comment
+  return unsafeAsPlain ? JSON.stringify(value) : value;
+}
+
 /** Build the body section that holds the routing/voice prose. */
 export function buildWhenToInvokeSection(parts: CatalogParts): string {
   const lines: string[] = ['## When to invoke this skill', ''];
@@ -355,7 +379,7 @@ export function applyCatalogTrim(content: string, skillName: string): { content:
   // Replace description in frontmatter — keep trailing newline so the next
   // YAML field doesn't collide on the same line as the description value.
   const newDesc = buildTrimmedDescription(parts);
-  const newFrontmatter = frontmatter.replace(descMatch[0], `description: ${newDesc}\n`);
+  const newFrontmatter = frontmatter.replace(descMatch[0], `description: ${yamlInlineScalar(newDesc)}\n`);
   let newContent = '---\n' + newFrontmatter + content.slice(fmEnd);
 
   // Insert body section after frontmatter (after the closing ---\n and any

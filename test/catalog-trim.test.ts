@@ -23,6 +23,7 @@ import {
   buildTrimmedDescription,
   buildWhenToInvokeSection,
   applyCatalogTrim,
+  yamlInlineScalar,
 } from '../scripts/gen-skill-docs';
 
 describe('splitCatalogDescription', () => {
@@ -172,6 +173,37 @@ describe('buildTrimmedDescription', () => {
   });
 });
 
+describe('yamlInlineScalar (Codex strict-YAML safety)', () => {
+  test('double-quotes a description containing ": " (the mapping indicator)', () => {
+    expect(yamlInlineScalar('Ship workflow: detect and merge base branch. (gstack)'))
+      .toBe('"Ship workflow: detect and merge base branch. (gstack)"');
+  });
+
+  test('quotes an apostrophe + colon lead, keeping the apostrophe bare', () => {
+    expect(yamlInlineScalar("Designer's eye QA: finds slop — then fixes it. (gstack)"))
+      .toBe("\"Designer's eye QA: finds slop — then fixes it. (gstack)\"");
+  });
+
+  test('quotes a colon that only appears inside parens', () => {
+    expect(yamlInlineScalar('Self-tuning question sensitivity (v1: observational). (gstack)'))
+      .toBe('"Self-tuning question sensitivity (v1: observational). (gstack)"');
+  });
+
+  test('leaves a colon-free description bare (no churn on safe skills)', () => {
+    expect(yamlInlineScalar('Weekly engineering retrospective. (gstack)'))
+      .toBe('Weekly engineering retrospective. (gstack)');
+  });
+
+  test('treats a trailing colon as unsafe', () => {
+    expect(yamlInlineScalar('Trailing colon:')).toBe('"Trailing colon:"');
+  });
+
+  test('quoted output round-trips back to the original text', () => {
+    const raw = "Designer's eye QA: x — y. (gstack)";
+    expect(JSON.parse(yamlInlineScalar(raw))).toBe(raw);
+  });
+});
+
 describe('buildWhenToInvokeSection', () => {
   test('produces markdown H2 with routing prose and voice line', () => {
     const out = buildWhenToInvokeSection({
@@ -227,8 +259,10 @@ Original body content here.
     const result = applyCatalogTrim(minimalSkill, 'example');
     expect(result).not.toBeNull();
     const { content, parts } = result!;
-    // Frontmatter description is now ONE line ending with (gstack)
-    expect(content).toMatch(/^description: Example skill:[^\n]*\(gstack\)\n/m);
+    // Frontmatter description is now ONE line ending with (gstack). The lead
+    // contains ": " (after "Example skill"), so it is double-quoted for strict
+    // (Codex) YAML parsers — see yamlInlineScalar.
+    expect(content).toMatch(/^description: "Example skill:[^\n]*\(gstack\)"\n/m);
     // Body has the When to invoke section
     expect(content).toContain('## When to invoke this skill');
     expect(content).toContain('Use when asked to do an example task.');
@@ -257,7 +291,8 @@ Original body content here.
     expect(result).not.toBeNull();
     expect(result!.content).not.toMatch(/\(gstack\)preamble-tier/);
     expect(result!.content).not.toMatch(/\(gstack\)allowed-tools/);
-    expect(result!.content).toMatch(/\(gstack\)\n[a-z-]+:/);
+    // Tolerate an optional closing quote (this lead is quoted for Codex safety).
+    expect(result!.content).toMatch(/\(gstack\)"?\n[a-z-]+:/);
   });
 
   test('returns null on content without proper frontmatter', () => {

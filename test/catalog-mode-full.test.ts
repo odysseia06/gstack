@@ -60,7 +60,7 @@ describe('--catalog-mode=full opt-out behavior (smoke)', () => {
   test('--catalog-mode=full produces multi-line description in frontmatter', () => {
     // Save the trim'd state so we can restore it.
     const trimmedShip = fs.readFileSync(SHIP_SKILL, 'utf-8');
-    expect(trimmedShip).toMatch(/^description: Ship workflow:[^\n]*\(gstack\)\n/m);
+    expect(trimmedShip).toMatch(/^description: "Ship workflow:[^\n]*\(gstack\)"\n/m);
 
     try {
       // Run with --catalog-mode=full. Mutates working tree.
@@ -100,7 +100,7 @@ describe('--catalog-mode=full opt-out behavior (smoke)', () => {
       }
       // Sanity-check the restored state matches what we saw at the start.
       const restoredShip = fs.readFileSync(SHIP_SKILL, 'utf-8');
-      expect(restoredShip).toMatch(/^description: Ship workflow:[^\n]*\(gstack\)\n/m);
+      expect(restoredShip).toMatch(/^description: "Ship workflow:[^\n]*\(gstack\)"\n/m);
     }
   }, 180_000);
 

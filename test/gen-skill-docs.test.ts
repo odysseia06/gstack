@@ -1,6 +1,7 @@
 import { describe, test, expect } from 'bun:test';
 import { COMMAND_DESCRIPTIONS } from '../browse/src/commands';
 import { SNAPSHOT_FLAGS } from '../browse/src/snapshot';
+import { yamlInlineScalar } from '../scripts/gen-skill-docs';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -162,6 +163,33 @@ describe('gen-skill-docs', () => {
       expect(content).toContain('name:');
       expect(content).toContain('description:');
     }
+  });
+
+  // Regression guard for the Codex YAML break: a single-line `description:` whose
+  // value contains ": " (or another plain-scalar hazard) is accepted by Claude's
+  // lenient loader but rejected outright by Codex's strict YAML parser. The
+  // generator double-quotes such values (yamlInlineScalar); this test fails if
+  // any generated SKILL.md ever ships an unquoted, unsafe inline description.
+  test('every generated SKILL.md description is strict-YAML safe (Codex can parse it)', () => {
+    const offenders: string[] = [];
+    for (const skill of CLAUDE_GENERATED_SKILLS) {
+      const content = fs.readFileSync(path.join(ROOT, skill.dir, 'SKILL.md'), 'utf-8');
+      const fmEnd = content.indexOf('\n---', 4);
+      if (fmEnd < 0) continue;
+      const frontmatter = content.slice(4, fmEnd);
+      const m = frontmatter.match(/^description:[ \t]*(.*)$/m);
+      if (!m) continue;
+      const inline = m[1].trim();
+      // Block scalars (| or >) carry the value on following indented lines — safe.
+      if (inline === '' || inline.startsWith('|') || inline.startsWith('>')) continue;
+      // Already-quoted scalars are safe.
+      if (inline.startsWith('"') || inline.startsWith("'")) continue;
+      // A bare plain scalar must already be plain-safe: quoting it must be a no-op.
+      if (yamlInlineScalar(inline) !== inline) {
+        offenders.push(`${skill.dir}/SKILL.md -> description: ${inline}`);
+      }
+    }
+    expect(offenders).toEqual([]);
   });
 
   test(`every generated SKILL.md description stays within ${MAX_SKILL_DESCRIPTION_LENGTH} chars`, () => {
